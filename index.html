@@ -1,0 +1,21 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Universal OSC Chat</title>
+<link rel="stylesheet" href="./style.css" />
+
+<div id="chatlog">
+	<p id="welcome">Universal OSC Chat</p>
+</div>
+
+<div id="midbar">
+	<span id="typing-indicator"></span>
+	<span title="Shows the character limit, echoes your own messages, and periodically refreshes the typing indicator.">
+		<label for="vrc-mode-toggle">VRC Mode</label>
+		<input id="vrc-mode-toggle" type="checkbox" />
+	</span>
+	<span id="char-counter" style="display: none"></span>
+</div>
+
+<textarea id="inputbox" disabled="">Connecting…</textarea>
+
+<script src="./index.js"></script>

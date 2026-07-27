@@ -1,0 +1,110 @@
+:root {
+	--color-lightness: 60%;
+	--alt-bg: #0001;
+}
+
+:root, textarea {
+	color-scheme: light dark;
+	font-family: sans-serif;
+	font-size: 16pt;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--color-lightness: 80%;
+	}
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+}
+
+div#chatlog {
+	flex-grow: 1;
+	overflow-y: scroll;
+}
+
+div#chatlog > div.logline:nth-child(even) {
+	background: #0002;
+}
+
+textarea#inputbox {
+	overflow-y: scroll;
+	resize: none;
+	min-height: 3em;
+	padding: 0.3em;
+}
+
+span.timestamp {
+	font-family: monospace;
+	font-size: 10pt;
+	opacity: 0.6;
+}
+
+span.username {
+	font-weight: bold;
+	margin-left: 0.3em;
+	margin-right: 0.3em;
+}
+
+div.logline, p.error {
+	padding-left: 2.2em;
+	margin-right: 0.2em;
+	text-indent: -2em;
+	white-space: pre-wrap;
+	padding-top: 0.15em;
+	padding-bottom: 0.15em;
+}
+
+@keyframes message-notify {
+	from {
+		border-color: AccentColor;
+	}
+
+	to {
+		border-color: transparent;
+	}
+}
+
+div.logline {
+	animation-name: message-notify;
+	animation-duration: 1s;
+	animation-timing-function: ease-out;
+	border-top: 3px solid transparent;
+}
+
+p.error {
+	color: oklch(var(--color-lightness) 0.2 15);
+}
+
+div#midbar {
+	font-size: 12pt;
+	margin: 0.5em;
+	user-select: none;
+	display: flex;
+}
+
+span#char-counter, span#typing-indicator {
+	opacity: 0.7;
+}
+
+span#char-counter {
+	margin-left: 1em;
+}
+
+span#char-counter.overflow {
+	color: #ffcf00;
+	opacity: 1.0;
+	font-weight: bold;
+}
+
+span#typing-indicator {
+	flex-grow: 1;
+}
