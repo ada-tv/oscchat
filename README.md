@@ -18,7 +18,7 @@ Run [oscChat.js](https://raw.githubusercontent.com/ada-tv/overte-scripts/refs/he
 Supports sending and receiving messages and typing indicators.
 
 ### Resonite
-[OSC Chat Bridge installer ball](resrec:///U-1ZO6MMF2IL2/R-019fa436-9934-78df-9a58-0bc149942368)
+OSC Chat Bridge installer ball: `resrec:///U-1ZO6MMF2IL2/R-019fa436-9934-78df-9a58-0bc149942368`
 
 Supports sending and receiving messages. Doesn't have any built-in notification system, it only propagates `PublicMessage` impulses through OSC. I might make something later that will make a noise and show text if it receives a message sent by its owner.
 
