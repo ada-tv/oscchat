@@ -13,6 +13,10 @@
 	:root {
 		--color-lightness: 80%;
 	}
+
+	div#chatlog > div.logline:nth-child(even) {
+		background: #0002;
+	}
 }
 
 body {
@@ -32,7 +36,7 @@ div#chatlog {
 }
 
 div#chatlog > div.logline:nth-child(even) {
-	background: #0002;
+	background: #0001;
 }
 
 textarea#inputbox {
@@ -89,14 +93,12 @@ div#midbar {
 	margin: 0.5em;
 	user-select: none;
 	display: flex;
+	gap: 1em;
+	align-items: center;
 }
 
 span#char-counter, span#typing-indicator {
 	opacity: 0.7;
-}
-
-span#char-counter {
-	margin-left: 1em;
 }
 
 span#char-counter.overflow {
@@ -107,4 +109,12 @@ span#char-counter.overflow {
 
 span#typing-indicator {
 	flex-grow: 1;
+}
+
+button#clear-log {
+	padding: 0;
+	font-size: 12pt;
+	width: 2em;
+	height: 2em;
+	border-radius: 100%;
 }

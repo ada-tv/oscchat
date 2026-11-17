@@ -7,6 +7,7 @@ import pythonosc
 import pythonosc.udp_client
 import pythonosc.osc_server
 from websockets.asyncio.server import serve, broadcast
+from random import getrandbits
 
 OSC_OUTPORT = 9000
 OSC_INPORT = 9001
@@ -23,7 +24,8 @@ async def handle_client(socket):
         message = json.loads(raw_message)
 
         if "body" in message:
-            osc_client.send_message("/chatbox/input", [message["body"], True, True])
+            # random bits arg for resonite, since OSCSender/OSCReceiver are badly designed lol
+            osc_client.send_message("/chatbox/input", [message["body"], True, message.get("notify", True), getrandbits(31)])
 
         if "typing" in message:
             osc_client.send_message("/chatbox/typing", message["typing"])

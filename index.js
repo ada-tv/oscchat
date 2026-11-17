@@ -16,15 +16,49 @@ const charCounter = document.getElementById("char-counter");
 /** @type {HTMLInputElement} */
 const vrcMode = document.getElementById("vrc-mode-toggle");
 
+/** @type {HTMLInputElement} */
+const realtimeText = document.getElementById("realtime-text-toggle");
+
 /** @type {WebSocket} */
-const socket = new WebSocket("ws://127.0.0.1:9002/");
+let socket;
+
+function createSocket() {
+	socket = new WebSocket("ws://127.0.0.1:9002/");
+
+	socket.addEventListener("open", () => {
+		input.value = "";
+		input.disabled = false;
+	});
+
+	socket.addEventListener("close", () => {
+		input.disabled = true;
+
+		let text = document.createElement("p");
+		text.innerText = "Socket closed";
+		text.className = "error";
+		log.append(text);
+	});
+
+	socket.addEventListener("message", event => {
+		/** @type {Object} */
+		const eventData = JSON.parse(event.data);
+
+		if (eventData.hasOwnProperty("body")) {
+			addChatMessage(eventData.name, eventData.body);
+		} else if (eventData.hasOwnProperty("typing")) {
+			if (eventData.typing) {
+				typingUsers.set(eventData.name, Date.now());
+			} else {
+				typingUsers.delete(eventData.name);
+			}
+
+			setTypingIndicator();
+		}
+	});
+}
 
 /** @type {boolean} */
 let isTyping = false;
-
-// NOTE: VRChat apparently expects to be given periodic typing
-// indicator messages or it disappears after a while (undocumented lol)
-let periodicTypingPing = null;
 
 /** @type {Map<string, number>} */
 let typingUsers = new Map();
@@ -35,7 +69,7 @@ function reset() {
 
 	charCounter.innerText = "0/144";
 	charCounter.className = "";
-	charCounter.style = "display: none";
+	charCounter.style.visibility = "collapse";
 	vrcMode.checked = false;
 
 	typingIndicator.innerText = "";
@@ -139,57 +173,28 @@ setInterval(() => {
 	setTypingIndicator();
 }, 2000);
 
-socket.addEventListener("open", () => {
-	input.value = "";
-	input.disabled = false;
-});
-
-socket.addEventListener("close", () => {
-	input.disabled = true;
-
-	let text = document.createElement("p");
-	text.innerText = "Socket closed";
-	text.className = "error";
-	log.append(text);
-});
-
-socket.addEventListener("message", event => {
-	/** @type {Object} */
-	const eventData = JSON.parse(event.data);
-
-	if (eventData.hasOwnProperty("body")) {
-		addChatMessage(eventData.name, eventData.body);
-	} else if (eventData.hasOwnProperty("typing")) {
-		if (eventData.typing) {
-			typingUsers.set(eventData.name, Date.now());
-		} else {
-			typingUsers.delete(eventData.name);
-		}
-
-		setTypingIndicator();
-	}
-});
+// wait a sec for the server to start if we've been opened by run.sb
+setTimeout(createSocket, 500);
 
 input.addEventListener("keydown", event => {
 	if (event.key == "Enter" && !event.shiftKey) {
 		event.preventDefault();
 
+		const text = input.value.trim();
+
+		if (text === "") { return; }
+
 		if (vrcMode.checked) {
 			addChatMessage("You", input.value);
 		}
 
-		socket.send(JSON.stringify({ body: input.value }));
+		socket.send(JSON.stringify({ body: text, notify: true }));
 		socket.send(JSON.stringify({ typing: false }));
 
 		input.value = "";
 		isTyping = false;
 		charCounter.innerText = "0/144";
 		charCounter.className = "";
-
-		if (periodicTypingPing !== null) {
-			clearInterval(periodicTypingPing);
-			periodicTypingPing = null;
-		}
 
 		return;
 	}
@@ -198,20 +203,10 @@ input.addEventListener("keydown", event => {
 input.addEventListener("input", () => {
 	if (input.value.length === 0 && isTyping) {
 		isTyping = false;
-
-		if (periodicTypingPing !== null) {
-			clearInterval(periodicTypingPing);
-			periodicTypingPing = null;
-		}
-
 		socket.send(JSON.stringify({ typing: false }));
 	} else if (input.value.length > 0 && !isTyping) {
 		isTyping = true;
 		socket.send(JSON.stringify({ typing: true }));
-
-		if (vrcMode.checked) {
-			periodicTypingPing = setInterval(() => socket.send(JSON.stringify({ typing: true })), 4000);
-		}
 	}
 
 	let charCount = 0;
@@ -223,10 +218,22 @@ input.addEventListener("input", () => {
 	charCounter.className = charCount >= 144 ? "overflow" : "";
 });
 
-vrcMode.addEventListener("change", () => {
-	if (vrcMode.checked) {
-		charCounter.style = "";
-	} else {
-		charCounter.style = "display: none";
+// NOTE: VRChat apparently expects to be given periodic typing
+// indicator messages or it disappears after a while (undocumented lol)
+// NOTE: /chatbox/input is ratelimited, so we can't send a message for every key press
+setInterval(() => {
+	if (isTyping) {
+		socket.send(JSON.stringify({ typing: true }));
+
+		if (realtimeText.checked) {
+			const text = input.value.trim();
+			socket.send(JSON.stringify({ body: text, notify: false }));
+		}
 	}
+}, 1000);
+
+vrcMode.addEventListener("change", () => {
+	charCounter.style.visibility = vrcMode.checked ? "visible" : "collapse";
 });
+
+document.getElementById("clear-log").addEventListener("click", () => log.replaceChildren());
